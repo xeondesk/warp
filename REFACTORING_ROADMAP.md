@@ -45,6 +45,8 @@ cargo clippy --workspace -- -D warnings
 
 ### 1.3 Module Structure Audit
 
+**Status**: In progress — baseline tooling added in `script/module-structure-lint` and findings documented in `MODULE_STRUCTURE_AUDIT.md`.
+
 **Target**: Weeks 2-4
 
 **Task**: Map existing crate hierarchy and identify improvement candidates

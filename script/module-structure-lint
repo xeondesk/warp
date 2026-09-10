@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+max_depth="${MODULE_STRUCTURE_MAX_DEPTH:-3}"
+
+if ! [[ "$max_depth" =~ ^[0-9]+$ ]] || (( max_depth < 1 )); then
+  echo "MODULE_STRUCTURE_MAX_DEPTH must be a positive integer" >&2
+  exit 2
+fi
+
+violations=0
+while IFS= read -r -d '' module_file; do
+  relative_path="${module_file#"$root_dir"/}"
+  module_path="${relative_path%/mod.rs}"
+  depth=0
+  if [[ -n "$module_path" ]]; then
+    IFS='/' read -r -a components <<< "$module_path"
+    depth="${#components[@]}"
+  fi
+
+  if (( depth > max_depth )); then
+    printf 'module depth %d exceeds maximum %d: %s\n' "$depth" "$max_depth" "$relative_path" >&2
+    violations=$((violations + 1))
+  fi
+done < <(
+  find "$root_dir/app/src" "$root_dir/crates" -type f -name mod.rs -print0 2>/dev/null
+)
+
+if (( violations > 0 )); then
+  printf '%d module structure violation(s) found\n' "$violations" >&2
+  exit 1
+fi
+
+printf 'Module structure check passed (maximum depth: %d)\n' "$max_depth"
