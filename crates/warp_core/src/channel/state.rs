@@ -6,7 +6,8 @@ use url::{Origin, ParseError, Url};
 use crate::AppId;
 use crate::{
     channel::config::{
-        ChannelConfig, McpOAuthProviderConfig, OzConfig, RudderStackDestination, WarpServerConfig,
+        ChannelConfig, McpOAuthProviderConfig, OzConfig, PublicUrlsConfig, RudderStackDestination,
+        WarpServerConfig,
     },
     features::FeatureFlag,
 };
@@ -46,6 +47,8 @@ impl ChannelState {
                 logfile_name: "".into(),
                 server_config: WarpServerConfig::production(),
                 oz_config: OzConfig::production(),
+                public_urls: PublicUrlsConfig::production(),
+                is_staging: false,
                 telemetry_config: None,
                 autoupdate_config: None,
                 crash_reporting_config: None,
@@ -109,11 +112,57 @@ impl ChannelState {
         Ok(())
     }
 
+    pub fn override_oz_root_url(url: impl Into<Cow<'static, str>>) -> Result<(), ParseError> {
+        let url = url.into();
+        Url::parse(&url)?;
+        CHANNEL_STATE.lock().config.oz_config.oz_root_url = url;
+        Ok(())
+    }
+
+    pub fn override_docs_base_url(url: impl Into<Cow<'static, str>>) -> Result<(), ParseError> {
+        let url = url.into();
+        Url::parse(&url)?;
+        CHANNEL_STATE
+            .lock()
+            .config
+            .public_urls
+            .docs_base_url = url;
+        Ok(())
+    }
+
+    pub fn override_website_base_url(url: impl Into<Cow<'static, str>>) -> Result<(), ParseError> {
+        let url = url.into();
+        Url::parse(&url)?;
+        CHANNEL_STATE
+            .lock()
+            .config
+            .public_urls
+            .website_base_url = url;
+        Ok(())
+    }
+
     pub fn uses_staging_server() -> bool {
+        if CHANNEL_STATE.lock().config.is_staging {
+            return true;
+        }
+        // Legacy fallback for configs that predate `is_staging`.
         let Ok(url) = Url::parse(Self::server_root_url().as_ref()) else {
             return false;
         };
-        url.host_str() == Some("staging.warp.dev")
+        url.host_str().is_some_and(Self::is_staging_host)
+    }
+
+    /// Returns true for the legacy staging host. Kept in one place so callers
+    /// don't scatter `staging.warp.dev` literals.
+    pub fn is_staging_host(host: &str) -> bool {
+        host == "staging.warp.dev"
+    }
+
+    /// Returns true when `host` is `warp.dev` or any subdomain (e.g.
+    /// `app.warp.dev`, `oz.warp.dev`). Used for CORS, proxy-bypass and
+    /// same-origin checks instead of inline suffix matches.
+    pub fn is_warp_host(host: &str) -> bool {
+        host == "warp.dev" || host.ends_with(".warp.dev")
     }
 
     /// Returns the canonical identifier for the application.
@@ -258,6 +307,57 @@ impl ChannelState {
 
     pub fn oz_root_url() -> Cow<'static, str> {
         CHANNEL_STATE.lock().config.oz_config.oz_root_url.clone()
+    }
+
+    /// Oz dashboard URL, optionally joined with a path (e.g. `oz_url("/runs")`).
+    pub fn oz_url(path: &str) -> String {
+        let base = Self::oz_root_url();
+        let base = base.trim_end_matches('/');
+        if path.is_empty() {
+            return base.to_string();
+        }
+        if path.starts_with('/') {
+            format!("{base}{path}")
+        } else {
+            format!("{base}/{path}")
+        }
+    }
+
+    pub fn docs_base_url() -> Cow<'static, str> {
+        CHANNEL_STATE
+            .lock()
+            .config
+            .public_urls
+            .docs_base_url
+            .clone()
+    }
+
+    /// Builds a docs URL from a path (e.g. `docs_url("terminal/warpify/ssh")`).
+    pub fn docs_url(path: &str) -> String {
+        let base = Self::docs_base_url();
+        let base = base.trim_end_matches('/');
+        let path = path.trim_start_matches('/');
+        format!("{base}/{path}")
+    }
+
+    pub fn website_base_url() -> Cow<'static, str> {
+        CHANNEL_STATE
+            .lock()
+            .config
+            .public_urls
+            .website_base_url
+            .clone()
+    }
+
+    /// Builds a marketing-website URL from a path (e.g. `website_url("pricing")`).
+    pub fn website_url(path: &str) -> String {
+        let base = Self::website_base_url();
+        let base = base.trim_end_matches('/');
+        let path = path.trim_start_matches('/');
+        if path.is_empty() {
+            return base.to_string();
+        }
+        format!("{base}/{path}")
     }
 
     pub fn server_root_url() -> Cow<'static, str> {

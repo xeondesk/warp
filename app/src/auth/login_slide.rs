@@ -16,6 +16,7 @@ use onboarding::slides::{layout, slide_content};
 use onboarding::{OnboardingIntention, AI_FEATURES, WARP_DRIVE_FEATURES};
 use pathfinder_color::ColorU;
 use ui_components::{button, Component as _, Options as _};
+use warp_core::channel::ChannelState;
 use warp_core::features::FeatureFlag;
 use warp_core::ui::theme::color::internal_colors;
 use warp_core::ui::Icon;
@@ -40,7 +41,9 @@ use std::cell::Cell;
 use pathfinder_geometry::vector::vec2f;
 use warpui::elements::{ChildAnchor, ParentAnchor, ParentOffsetBounds};
 
-const TOS_URL: &str = "https://www.warp.dev/terms-of-service";
+fn tos_url() -> String {
+    ChannelState::website_url("terms-of-service")
+}
 
 // ---------------------------------------------------------------------------
 // Init (keybindings)
@@ -522,7 +525,7 @@ impl LoginSlideView {
                 ui_builder
                     .link(
                         "Terms of Service".into(),
-                        Some(TOS_URL.into()),
+                        Some(tos_url()),
                         None,
                         self.tos_mouse_state.clone(),
                     )

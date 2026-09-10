@@ -7,6 +7,7 @@ use crate::settings::{NativePreferenceSettings, UserNativePreference};
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::uri::web_intent_parser::{self, WebIntent};
 use settings::Setting as _;
+use warp_core::channel::ChannelState;
 use warpui::elements::{Align, CrossAxisAlignment, Flex};
 use warpui::ui_components::{
     button::ButtonVariant,
@@ -278,12 +279,14 @@ impl TypedActionView for WasmNUXDialog {
                 }
             }
             WasmNUXDialogAction::OpenDownloadDesktopAppLink => {
-                ctx.open_url("https://app.warp.dev/get_warp");
+                let url = format!("{}/get_warp", ChannelState::server_root_url().trim_end_matches('/'));
+                ctx.open_url(&url);
                 self.requested_download = true;
                 ctx.notify();
             }
             WasmNUXDialogAction::LearnMore => {
-                ctx.open_url("https://www.warp.dev");
+                let url = ChannelState::website_base_url().into_owned();
+                ctx.open_url(&url);
             }
         }
     }

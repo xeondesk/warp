@@ -9,7 +9,14 @@
 MACOSX_DEPLOYMENT_TARGET = "10.14"
 
 [build]
-rustflags = ["-C", "symbol-mangling-version=v0", "-C", "link-args=-Wl,-headerpad_max_install_names"]
+rustflags = ["-C", "symbol-mangling-version=v0"]
+
+# macOS-only: -headerpad_max_install_names is an ld64 (Apple ld) option.
+# Passing it unconditionally breaks/misparses on Linux (GNU ld treats it as
+# `-h eaderpad_max_install_names`, stamping a bogus SONAME) and stalls the
+# final `warp`/`warp(test)` links at the end of the build (e.g. 1411/1415).
+[target.'cfg(target_os = "macos")']
+rustflags = ["-C", "link-args=-Wl,-headerpad_max_install_names"]
 
 [net]
 git-fetch-with-cli = true

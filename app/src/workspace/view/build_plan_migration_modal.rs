@@ -11,6 +11,7 @@ use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use settings::Setting as _;
 use thousands::Separable;
+use warp_core::channel::ChannelState;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::Fill;
 use warp_graphql::billing::{AddonCreditsOption, StripeSubscriptionPlan};
@@ -36,14 +37,14 @@ const LEFT_PANEL_WIDTH: f32 = 333.;
 const CORNER_RADIUS: f32 = 20.;
 const PANEL_PADDING: f32 = 24.;
 
-#[derive(Debug, Clone, PartialEq, Copy)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BuildPlanMigrationModalViewAction {
     SelectReloadDenomination(usize),
     // true => "enabled", false => "disabled"
     EnableAutoReloadToggled(bool),
     GetStartedClicked,
     Close,
-    OpenUrl(&'static str),
+    OpenUrl(String),
 }
 
 #[derive(Default)]
@@ -629,9 +630,10 @@ impl BuildPlanMigrationModal {
             Self::create_bullet_item("And more...".to_string(), font_family, 14., text_color);
         features_list.add_child(and_more);
 
+        let pricing_url = ChannelState::website_url("pricing");
         let learn_more_fragments = vec![
             FormattedTextFragment::plain_text("Learn more on our "),
-            FormattedTextFragment::hyperlink("pricing page", "https://www.warp.dev/pricing"),
+            FormattedTextFragment::hyperlink("pricing page", pricing_url.clone()),
             FormattedTextFragment::plain_text("."),
         ];
         let learn_more = Container::new(
@@ -644,9 +646,9 @@ impl BuildPlanMigrationModal {
                 HighlightedHyperlink::default(),
             )
             .with_hyperlink_font_color(appearance.theme().accent().into_solid())
-            .register_default_click_handlers(|_url, ctx, _| {
+            .register_default_click_handlers(move |_url, ctx, _| {
                 ctx.dispatch_typed_action(BuildPlanMigrationModalViewAction::OpenUrl(
-                    "https://www.warp.dev/pricing",
+                    pricing_url.clone(),
                 ));
             })
             .finish(),
@@ -855,6 +857,7 @@ impl TypedActionView for BuildPlanMigrationModal {
             BuildPlanMigrationModalViewAction::OpenUrl(url) => {
                 ctx.open_url(url);
             }
+
         }
     }
 }

@@ -4,7 +4,7 @@
 
 use anyhow::Result;
 use warp_core::{
-    channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig},
+    channel::{Channel, ChannelConfig, ChannelState, OzConfig, PublicUrlsConfig, WarpServerConfig},
     AppId,
 };
 
@@ -17,6 +17,8 @@ fn main() -> Result<()> {
             logfile_name: "warp-oss.log".into(),
             server_config: WarpServerConfig::production(),
             oz_config: OzConfig::production(),
+            public_urls: PublicUrlsConfig::production(),
+            is_staging: false,
             telemetry_config: None,
             crash_reporting_config: None,
             autoupdate_config: None,

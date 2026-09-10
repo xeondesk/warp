@@ -22,8 +22,10 @@ use crate::terminal::model::block::{BlockId, SerializedBlock};
 use crate::terminal::CLIAgent;
 use crate::util::path::resolve_executable;
 use warp_cli::{
-    OZ_CLI_ENV, OZ_HARNESS_ENV, OZ_PARENT_RUN_ID_ENV, OZ_RUN_ID_ENV, SERVER_ROOT_URL_OVERRIDE_ENV,
-    SESSION_SHARING_SERVER_URL_OVERRIDE_ENV, WS_SERVER_URL_OVERRIDE_ENV,
+    DOCS_BASE_URL_OVERRIDE_ENV, OZ_CLI_ENV, OZ_HARNESS_ENV, OZ_PARENT_RUN_ID_ENV,
+    OZ_ROOT_URL_OVERRIDE_ENV, OZ_RUN_ID_ENV, SERVER_ROOT_URL_OVERRIDE_ENV,
+    SESSION_SHARING_SERVER_URL_OVERRIDE_ENV, WEBSITE_BASE_URL_OVERRIDE_ENV,
+    WS_SERVER_URL_OVERRIDE_ENV,
 };
 use warp_core::channel::ChannelState;
 
@@ -297,6 +299,21 @@ fn task_env_vars_for_harness_name(
                 OsString::from(url),
             );
         }
+        insert_non_empty_task_env_var(
+            &mut env_vars,
+            OZ_ROOT_URL_OVERRIDE_ENV,
+            ChannelState::oz_root_url().into_owned(),
+        );
+        insert_non_empty_task_env_var(
+            &mut env_vars,
+            DOCS_BASE_URL_OVERRIDE_ENV,
+            ChannelState::docs_base_url().into_owned(),
+        );
+        insert_non_empty_task_env_var(
+            &mut env_vars,
+            WEBSITE_BASE_URL_OVERRIDE_ENV,
+            ChannelState::website_base_url().into_owned(),
+        );
     }
 
     env_vars

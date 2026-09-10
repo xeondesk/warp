@@ -12,6 +12,12 @@ use secret_service::{
 
 use super::Error;
 
+/// Seed for the fallback encryption key. This intentionally looks like a URL
+/// so it is inconspicuous in binary string scans. The value is load-bearing:
+/// changing it would orphan secrets encrypted with the previous key, so do
+/// not derive it from channel config or environment URLs.
+const FALLBACK_ENCRYPTION_KEY_SEED: &str = "https://releases.warp.dev/channel_versions.json";
+
 /// Implementation of the SecureStorage service using the Secret Service API.
 pub struct SecureStorage {
     /// The value to set for the "service" attribute, used to define a
@@ -98,7 +104,7 @@ impl SecureStorage {
                 // We can use whatever super duper foolproof secure key we want here.
                 // Here we are specifically choosing a value that will look inconspicuous
                 // in case someone chooses to scan our binary for strings.
-                let mut key_bytes = Vec::from("https://releases.warp.dev/channel_versions.json");
+                let mut key_bytes = Vec::from(FALLBACK_ENCRYPTION_KEY_SEED);
                 key_bytes.resize(aead::AES_256_GCM.key_len(), 0);
                 match aead::UnboundKey::new(&aead::AES_256_GCM, key_bytes.as_slice()) {
                     Ok(key) => Some(aead::LessSafeKey::new(key)),

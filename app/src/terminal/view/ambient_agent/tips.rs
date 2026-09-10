@@ -1,6 +1,7 @@
 //! Tips for cloud mode loading screen.
 
 use crate::ai::agent_tips::AITip;
+use warp_core::channel::ChannelState;
 use warpui::keymap::Keystroke;
 use warpui::AppContext;
 
@@ -38,6 +39,7 @@ impl AITip for CloudModeTip {
 
 /// Returns a collection of tips for the cloud mode loading screen.
 pub fn get_cloud_mode_tips() -> Vec<CloudModeTip> {
+    let oz_root_url = ChannelState::oz_root_url().into_owned();
     vec![
         CloudModeTip::new(
             "Install the Oz Slack integration to trigger agents from any channel or DM.",
@@ -53,7 +55,7 @@ pub fn get_cloud_mode_tips() -> Vec<CloudModeTip> {
         ),
         CloudModeTip::new(
             "View all your agent runs and their status in the Oz web app.",
-            Some("https://oz.warp.dev"),
+            Some(oz_root_url.clone()),
         ),
         CloudModeTip::new(
             "Join any Oz cloud agent run in real-time using Agent Session Sharing.",
@@ -121,7 +123,7 @@ pub fn get_cloud_mode_tips() -> Vec<CloudModeTip> {
         ),
         CloudModeTip::new(
             "View your teammates' agent runs in the Oz web app for shared visibility.",
-            Some("https://oz.warp.dev"),
+            Some(oz_root_url),
         ),
         CloudModeTip::new(
             "Build agents that automatically triage and label incoming GitHub issues.",

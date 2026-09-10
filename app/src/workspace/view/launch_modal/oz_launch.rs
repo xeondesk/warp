@@ -90,19 +90,21 @@ impl Slide for OzLaunchSlide {
         None
     }
 
-    fn content(&self) -> &'static str {
+    fn content(&self) -> String {
         match self {
             OzLaunchSlide::CloudAgents => {
-                "Use cloud agents to run many agents in parallel, keep agents working when you close your laptop, or start agents programmatically. Plus, you can check on their work through the web."
+                "Use cloud agents to run many agents in parallel, keep agents working when you close your laptop, or start agents programmatically. Plus, you can check on their work through the web.".to_string()
             }
             OzLaunchSlide::AgentAutomations => {
-                "Oz agents can be defined using the standard Skills format. You can use the built in scheduler to setup agents to run autonomously at set intervals, or use the Oz SDK or API to programmatically start and manage Oz agents."
+                "Oz agents can be defined using the standard Skills format. You can use the built in scheduler to setup agents to run autonomously at set intervals, or use the Oz SDK or API to programmatically start and manage Oz agents.".to_string()
             }
             OzLaunchSlide::AgentManagement => {
-                "View all of your agents across local and cloud sessions in the Warp app or at [oz.warp.dev](https://oz.warp.dev). Join live agent sessions, continue tasks locally, and steer agents with one click."
+                let oz_url = warp_core::channel::ChannelState::oz_root_url().into_owned();
+                let oz_host = url_host_or_fallback(&oz_url);
+                format!("View all of your agents across local and cloud sessions in the Warp app or at [{oz_host}]({oz_url}). Join live agent sessions, continue tasks locally, and steer agents with one click.")
             }
             OzLaunchSlide::LaunchCredits => {
-                "Upgrade to Build this month and receive 1,000 extra credits to try using Oz. Credits are only eligible for Oz runs in Warp-hosted cloud environments."
+                "Upgrade to Build this month and receive 1,000 extra credits to try using Oz. Credits are only eligible for Oz runs in Warp-hosted cloud environments.".to_string()
             }
         }
     }
@@ -199,4 +201,13 @@ impl Slide for OzLaunchSlide {
 
 pub fn init(app: &mut warpui::AppContext) {
     super::init::<OzLaunchSlide>(app);
+}
+
+/// Display host for the Oz URL (e.g. `oz.warp.dev`). Falls back to the full
+/// URL when it can't be parsed, so custom overrides still render sensibly.
+fn url_host_or_fallback(url: &str) -> String {
+    url::Url::parse(url)
+        .ok()
+        .and_then(|parsed| parsed.host_str().map(str::to_string))
+        .unwrap_or_else(|| url.to_string())
 }

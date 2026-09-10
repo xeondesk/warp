@@ -21,7 +21,9 @@ use warpui::{
 const TITLE_EXISTING_USERS: &str = "We've updated our telemetry policy.";
 const TITLE_NEW_USERS: &str = "Help improve Warp.";
 const DESCRIPTION: &str = "We may collect certain console interactions to improve Warp's AI capabilities. You can opt out any time.";
-const PRIVACY_URL: &str = "https://warp.dev/privacy";
+fn privacy_url() -> String {
+    warp_core::channel::ChannelState::website_url("privacy")
+}
 
 #[derive(Default, Debug, Clone)]
 pub struct TelemetryBanner {
@@ -115,7 +117,7 @@ impl View for TelemetryBanner {
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(WorkspaceAction::OpenLink(
-                                PRIVACY_URL.to_string(),
+                                privacy_url(),
                             ));
                             ctx.dispatch_typed_action(
                                 TerminalAction::HideTelemetryBannerPermanently,

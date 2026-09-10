@@ -81,7 +81,7 @@ where
     fn short_label(&self) -> &'static str;
     fn title(&self) -> &'static str;
     fn title_icon(&self) -> Option<Icon>;
-    fn content(&self) -> &'static str;
+    fn content(&self) -> String;
     fn image(&self) -> AssetSource;
     fn all() -> Vec<Self>;
     fn cta_button(&self) -> CTAButton<Self>;
@@ -402,7 +402,7 @@ impl<S: Slide> LaunchModal<S> {
                                 Shrinkable::new(
                                     1.,
                                     FormattedTextElement::new(
-                                        parse_markdown(self.slide.content()).unwrap(),
+                                        parse_markdown(&self.slide.content()).unwrap(),
                                         14.,
                                         appearance.ui_font_family(),
                                         appearance.ui_font_family(),

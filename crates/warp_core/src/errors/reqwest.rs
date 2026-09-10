@@ -1,5 +1,7 @@
 use http::StatusCode;
 
+use crate::channel::ChannelState;
+
 use super::{register_error, ErrorExt};
 
 impl ErrorExt for reqwest::Error {
@@ -36,7 +38,17 @@ impl ErrorExt for reqwest::Error {
         // warning.
         if let (Some(url), Some(status)) = (self.url(), self.status()) {
             if let Some(domain) = url.domain() {
-                if domain == "staging.warp.dev" && status == StatusCode::FORBIDDEN {
+                let server_host = url::Url::parse(ChannelState::server_root_url().as_ref())
+                    .ok()
+                    .and_then(|server_url| {
+                        server_url
+                            .host_str()
+                            .map(|host| host.to_string())
+                    });
+                let is_staging_request = ChannelState::is_staging_host(domain)
+                    || (ChannelState::uses_staging_server()
+                        && server_host.is_some_and(|host| host == domain));
+                if is_staging_request && status == StatusCode::FORBIDDEN {
                     return false;
                 }
             }

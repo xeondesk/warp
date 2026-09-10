@@ -10,6 +10,7 @@ use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use thousands::Separable;
+use warp_core::channel::ChannelState;
 use warp_core::send_telemetry_from_ctx;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::{Fill, WarpTheme};
@@ -274,7 +275,7 @@ impl FreeTierLimitHitModal {
                                 let formatted_text = FormattedText::new([FormattedTextLine::Line(vec![
                                     FormattedTextFragment::hyperlink(
                                         "Extended cloud agents access".to_string(),
-                                        "https://www.warp.dev/oz".to_string(),
+                                        ChannelState::website_url("oz"),
                                     ),
                                 ])]);
                                 Flex::row()

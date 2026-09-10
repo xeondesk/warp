@@ -26,7 +26,9 @@ use warpui::{
 use crate::settings::PrivacySettings;
 use crate::themes::theme::ThemeKind;
 
-const PRIVACY_URL: &str = "https://warp.dev/privacy";
+fn privacy_url() -> String {
+    ChannelState::website_url("privacy")
+}
 
 pub const AUTH_MODAL_GAP: f32 = 16.;
 const MODAL_CORNER_RADIUS: Radius = Radius::Pixels(8.);
@@ -484,7 +486,7 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
                 .ui_builder()
                 .link(
                     "Learn more".into(),
-                    Some(PRIVACY_URL.into()),
+                    Some(privacy_url()),
                     None,
                     handles.telemetry_docs_mouse.clone(),
                 )

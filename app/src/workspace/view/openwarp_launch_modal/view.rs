@@ -20,17 +20,21 @@ use warpui::{
 use crate::appearance::Appearance;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{ActionButton, ActionButtonTheme, ButtonSize};
+use warp_core::channel::ChannelState;
 
 const MODAL_WIDTH: f32 = 420.;
 const HERO_HEIGHT: f32 = 92.;
 const HERO_IMAGE_PATH: &str = "async/png/onboarding/openwarp_launch_banner.png";
 const REPO_URL: &str = "https://github.com/warpdotdev/warp";
 const CONTRIBUTING_URL: &str = "https://github.com/warpdotdev/warp/blob/master/CONTRIBUTING.md";
-const OZ_URL: &str = "https://oz.warp.dev";
+
+fn oz_url() -> String {
+    ChannelState::oz_root_url().into_owned()
+}
 
 struct InlineLink {
     text: &'static str,
-    url: &'static str,
+    url: String,
 }
 
 struct FeatureItem {
@@ -41,32 +45,34 @@ struct FeatureItem {
     inline_link: Option<InlineLink>,
 }
 
-const FEATURE_ITEMS: &[FeatureItem] = &[
-    FeatureItem {
-        icon: Icon::HeartHand,
-        title: "Contribute",
-        description: "Warp's client code is now open source. Get started by using the /feedback skill to open an issue, and follow the contribution guidelines here.",
-        inline_link: Some(InlineLink {
-            text: "here",
-            url: CONTRIBUTING_URL,
-        }),
-    },
-    FeatureItem {
-        icon: Icon::Oz,
-        title: "Open Automated Development",
-        description: "The Warp repo is managed by an agent-first workflow powered by Oz, our cloud agent orchestration platform.",
-        inline_link: Some(InlineLink {
-            text: "Oz",
-            url: OZ_URL,
-        }),
-    },
-    FeatureItem {
-        icon: Icon::MessageChatSquare,
-        title: "Introducing 'auto (open-weights)'",
-        description: "We've added a new auto model that picks the best open weight model for a task, like Kimi or MiniMax.",
-        inline_link: None,
-    },
-];
+fn feature_items() -> Vec<FeatureItem> {
+    vec![
+        FeatureItem {
+            icon: Icon::HeartHand,
+            title: "Contribute",
+            description: "Warp's client code is now open source. Get started by using the /feedback skill to open an issue, and follow the contribution guidelines here.",
+            inline_link: Some(InlineLink {
+                text: "here",
+                url: CONTRIBUTING_URL.to_string(),
+            }),
+        },
+        FeatureItem {
+            icon: Icon::Oz,
+            title: "Open Automated Development",
+            description: "The Warp repo is managed by an agent-first workflow powered by Oz, our cloud agent orchestration platform.",
+            inline_link: Some(InlineLink {
+                text: "Oz",
+                url: oz_url(),
+            }),
+        },
+        FeatureItem {
+            icon: Icon::MessageChatSquare,
+            title: "Introducing 'auto (open-weights)'",
+            description: "We've added a new auto model that picks the best open weight model for a task, like Kimi or MiniMax.",
+            inline_link: None,
+        },
+    ]
+}
 
 pub fn init(app: &mut AppContext) {
     use warpui::keymap::macros::*;
@@ -261,7 +267,7 @@ impl OpenWarpLaunchModal {
             text: link.text.into(),
             styles: FormattedTextStyles {
                 underline: true,
-                hyperlink: Some(Hyperlink::Url(link.url.into())),
+                hyperlink: Some(Hyperlink::Url(link.url.clone())),
                 ..Default::default()
             },
         };
@@ -327,7 +333,7 @@ impl OpenWarpLaunchModal {
         let mut features_col = Flex::column()
             .with_cross_axis_alignment(CrossAxisAlignment::Start)
             .with_spacing(12.);
-        for item in FEATURE_ITEMS {
+        for item in &feature_items() {
             features_col.add_child(Self::render_feature_row(item, appearance));
         }
 

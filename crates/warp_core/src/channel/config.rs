@@ -16,6 +16,15 @@ pub struct ChannelConfig {
     pub server_config: WarpServerConfig,
     /// Configuration for Oz/ambient agents.
     pub oz_config: OzConfig,
+    /// Public-facing website/docs URLs. Defaults to production when absent
+    /// so older channel-config payloads keep parsing.
+    #[serde(default)]
+    pub public_urls: PublicUrlsConfig,
+    /// Whether this channel points at a staging backend. Used instead of
+    /// hostname sniffing (`staging.warp.dev`) so custom/staging URLs stay
+    /// detectable when `server_root_url` is overridden.
+    #[serde(default)]
+    pub is_staging: bool,
     /// Configuration for telemetry sending, or [`None`] if telemetry should be
     /// disabled for this build.
     pub telemetry_config: Option<TelemetryConfig>,
@@ -68,6 +77,45 @@ impl OzConfig {
             oz_root_url: "https://oz.warp.dev".into(),
             workload_audience_url: None,
         }
+    }
+}
+
+/// Public-facing website/docs URLs.
+///
+/// These are *not* backend URLs: docs and marketing pages stay on production
+/// hosts for all channels unless explicitly overridden for development. They
+/// live in channel config (instead of scattered string literals) so UI code
+/// can build links dynamically via [`crate::channel::ChannelState`].
+#[derive(Debug, Deserialize, Serialize)]
+pub struct PublicUrlsConfig {
+    /// Base URL for user documentation (e.g. `https://docs.warp.dev`).
+    #[serde(default = "PublicUrlsConfig::default_docs_base_url")]
+    pub docs_base_url: Cow<'static, str>,
+    /// Base URL for the marketing website (e.g. `https://www.warp.dev`).
+    #[serde(default = "PublicUrlsConfig::default_website_base_url")]
+    pub website_base_url: Cow<'static, str>,
+}
+
+impl PublicUrlsConfig {
+    pub fn production() -> Self {
+        Self {
+            docs_base_url: "https://docs.warp.dev".into(),
+            website_base_url: "https://www.warp.dev".into(),
+        }
+    }
+
+    fn default_docs_base_url() -> Cow<'static, str> {
+        "https://docs.warp.dev".into()
+    }
+
+    fn default_website_base_url() -> Cow<'static, str> {
+        "https://www.warp.dev".into()
+    }
+}
+
+impl Default for PublicUrlsConfig {
+    fn default() -> Self {
+        Self::production()
     }
 }
 

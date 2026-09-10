@@ -30,13 +30,14 @@ pub fn make_router() -> Router {
             .on_failure(()),
     );
 
-    // We allow requests from localhost, warp.dev and any subdomain of warp.dev.
+    // Allow requests from localhost and any warp.dev origin (e.g.
+    // https://warp.dev, https://app.warp.dev). The suffix check keeps this
+    // working for per-environment hosts (staging, dev overrides) without
+    // hardcoding each subdomain. Extra origins can be added via
+    // `WARP_INSTALL_DETECTION_EXTRA_ORIGINS` (comma-separated).
     let allow_origin_predicate =
         AllowOrigin::predicate(|origin: &HeaderValue, _request_parts: &Parts| {
-            origin == "http://localhost:8080"
-                || origin == "http://localhost:8082"
-                || origin == "https://warp.dev"
-                || origin.as_bytes().ends_with(b".warp.dev")
+            is_allowed_origin(origin)
         });
 
     let cors = CorsLayer::new()
@@ -47,6 +48,42 @@ pub fn make_router() -> Router {
         .route_service("/install_detection", get(detect_installation))
         .layer(trace_service)
         .layer(cors)
+}
+
+/// Extra allowed CORS origins, comma-separated (e.g. custom dev hosts).
+/// Read at request time so tests and dev processes can override per-process.
+fn extra_allowed_origins() -> Vec<String> {
+    std::env::var("WARP_INSTALL_DETECTION_EXTRA_ORIGINS")
+        .map(|raw| {
+            raw.split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn is_allowed_origin(origin: &HeaderValue) -> bool {
+    if origin == "http://localhost:8080" || origin == "http://localhost:8082" {
+        return true;
+    }
+    if extra_allowed_origins()
+        .iter()
+        .any(|extra| origin.as_bytes() == extra.as_bytes())
+    {
+        return true;
+    }
+    let Ok(origin_str) = origin.to_str() else {
+        return false;
+    };
+    let Ok(url) = url::Url::parse(origin_str) else {
+        return false;
+    };
+    let Some(host) = url.host_str() else {
+        return false;
+    };
+    host == "warp.dev" || host.ends_with(".warp.dev")
 }
 
 async fn detect_installation() -> &'static str {

@@ -15,6 +15,7 @@ use crate::{
 use anyhow::anyhow;
 use lazy_static::lazy_static;
 use warp_core::{
+    channel::ChannelState,
     features::FeatureFlag,
     ui::{appearance::DEFAULT_COMMAND_PALETTE_FONT_SIZE, builder::UiBuilder},
 };
@@ -44,7 +45,9 @@ use super::{
     AuthStateProvider,
 };
 
-const TOS_URL: &str = "https://www.warp.dev/terms-of-service";
+fn tos_url() -> String {
+    ChannelState::website_url("terms-of-service")
+}
 
 const COMMON_BODY_UI_FONT_SIZE: f32 = 12.;
 const AUTH_MODAL_GAP: f32 = 16.;
@@ -341,7 +344,7 @@ impl AuthViewBody {
                     ui_builder
                         .link(
                             "Terms of Service".into(),
-                            Some(TOS_URL.into()),
+                            Some(tos_url()),
                             None,
                             self.mouse_state_handles.tos_mouse_state_handle.clone(),
                         )

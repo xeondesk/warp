@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use string_offset::CharCounter;
 use warp_completer::signatures::CommandRegistry;
 use warp_completer::{util::parse_current_commands_and_tokens, ParsedTokensSnapshot};
+use warp_core::channel::ChannelState;
 use warp_core::report_error;
 use warp_core::ui::theme::{AnsiColorIdentifier, AnsiColors};
 use warpui::clipboard::ClipboardContent;
@@ -32,7 +33,10 @@ use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewCon
 const DOCS_URL: &str = "https://docs.warp.dev/agent-platform/cloud-agents/overview";
 const ENV_DOCS_URL: &str =
     "https://docs.warp.dev/reference/cli/integration-setup#creating-an-environment";
-const OZ_URL: &str = "https://oz.warp.dev";
+
+fn oz_url() -> String {
+    ChannelState::oz_root_url().into_owned()
+}
 
 const CONTENT_MAX_WIDTH: f32 = 720.;
 
@@ -652,7 +656,7 @@ impl TypedActionView for CloudSetupGuideView {
                 ));
             }
             CloudSetupGuideAction::VisitOz => {
-                ctx.open_url(OZ_URL);
+                ctx.open_url(&oz_url());
                 send_telemetry_from_ctx!(
                     AgentManagementTelemetryEvent::SetupGuideStepRun {
                         step: SetupGuideStep::VisitOz

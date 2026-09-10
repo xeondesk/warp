@@ -3,8 +3,9 @@ use std::{ffi::OsString, sync::Arc, time::Duration};
 use futures::channel::oneshot;
 use warp_cli::agent::Harness;
 use warp_cli::{
-    OZ_CLI_ENV, OZ_HARNESS_ENV, OZ_PARENT_RUN_ID_ENV, OZ_RUN_ID_ENV, SERVER_ROOT_URL_OVERRIDE_ENV,
-    SESSION_SHARING_SERVER_URL_OVERRIDE_ENV, WS_SERVER_URL_OVERRIDE_ENV,
+    DOCS_BASE_URL_OVERRIDE_ENV, OZ_CLI_ENV, OZ_HARNESS_ENV, OZ_PARENT_RUN_ID_ENV, OZ_ROOT_URL_OVERRIDE_ENV,
+    OZ_RUN_ID_ENV, SERVER_ROOT_URL_OVERRIDE_ENV, SESSION_SHARING_SERVER_URL_OVERRIDE_ENV,
+    WEBSITE_BASE_URL_OVERRIDE_ENV, WS_SERVER_URL_OVERRIDE_ENV,
 };
 use warp_core::channel::ChannelState;
 
@@ -242,6 +243,36 @@ fn task_env_vars_include_parent_run_id_when_present() {
         }
     } else {
         assert!(!env_vars.contains_key(&OsString::from(SESSION_SHARING_SERVER_URL_OVERRIDE_ENV)));
+    }
+
+    let oz_root_url = ChannelState::oz_root_url().into_owned();
+    if overrides_allowed && !oz_root_url.is_empty() {
+        assert_eq!(
+            env_vars.get(&OsString::from(OZ_ROOT_URL_OVERRIDE_ENV)),
+            Some(&OsString::from(oz_root_url))
+        );
+    } else {
+        assert!(!env_vars.contains_key(&OsString::from(OZ_ROOT_URL_OVERRIDE_ENV)));
+    }
+
+    let docs_base_url = ChannelState::docs_base_url().into_owned();
+    if overrides_allowed && !docs_base_url.is_empty() {
+        assert_eq!(
+            env_vars.get(&OsString::from(DOCS_BASE_URL_OVERRIDE_ENV)),
+            Some(&OsString::from(docs_base_url))
+        );
+    } else {
+        assert!(!env_vars.contains_key(&OsString::from(DOCS_BASE_URL_OVERRIDE_ENV)));
+    }
+
+    let website_base_url = ChannelState::website_base_url().into_owned();
+    if overrides_allowed && !website_base_url.is_empty() {
+        assert_eq!(
+            env_vars.get(&OsString::from(WEBSITE_BASE_URL_OVERRIDE_ENV)),
+            Some(&OsString::from(website_base_url))
+        );
+    } else {
+        assert!(!env_vars.contains_key(&OsString::from(WEBSITE_BASE_URL_OVERRIDE_ENV)));
     }
 }
 
