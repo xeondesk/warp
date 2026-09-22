@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+roots=(app/src/ai app/src/ai_assistant app/src/terminal crates/ai)
+forbidden=(
+  'warp_server_auth'
+  'generate_multi_agent_output'
+  'QuotaLimit'
+  'WarpSubscription'
+  'WarpEntitlement'
+)
+
+for pattern in "${forbidden[@]}"; do
+  if rg -n --glob '*.rs' "$pattern" "${roots[@]}"; then
+    echo "Forbidden local-AI dependency found: $pattern" >&2
+    exit 1
+  fi
+done
+
+echo 'Local AI boundary check passed.'
