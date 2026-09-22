@@ -16,3 +16,8 @@ git-fetch-with-cli = true
 
 [target.'cfg(target_family = "wasm")']
 rustflags = ["--cfg=web_sys_unstable_apis"]
+
+[target.x86_64-unknown-linux-gnu]
+# Use lld instead of the default GNU ld to drastically cut link-time memory
+# usage (needed on memory-constrained CI/sandbox machines).
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
