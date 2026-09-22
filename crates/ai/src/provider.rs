@@ -107,6 +107,8 @@ pub enum InferenceError {
     UnsupportedCapability,
 }
 
+pub mod credential;
+
 pub mod inference {
     use super::{CompletionRequest, CompletionResponse, InferenceError, ModelInfo};
     use async_trait::async_trait;
@@ -145,10 +147,10 @@ pub mod providers {
     use super::{Endpoint, ProviderConfig, ProviderId, ProviderProtocol};
 
     pub fn openrouter() -> ProviderConfig {
-        ProviderConfig { id: ProviderId("openrouter".into()), protocol: ProviderProtocol::OpenAiCompatible, endpoint: Endpoint::new("https://openrouter.ai/api/v1"), credential: Some(super::CredentialRef { name: "ai/openrouter/api_key".into() }), headers: Default::default() }
+        ProviderConfig { id: ProviderId("openrouter".into()), protocol: ProviderProtocol::OpenAiCompatible, endpoint: Endpoint::new("https://openrouter.ai/api/v1"), credential: Some(super::CredentialRef { name: credential::names::OPENROUTER_API_KEY.into() }), headers: Default::default() }
     }
 
     pub fn kilo() -> ProviderConfig {
-        ProviderConfig { id: ProviderId("kilo".into()), protocol: ProviderProtocol::OpenAiCompatible, endpoint: Endpoint::new("https://api.kilo.ai/api/gateway"), credential: Some(super::CredentialRef { name: "ai/kilo/api_key".into() }), headers: Default::default() }
+        ProviderConfig { id: ProviderId("kilo".into()), protocol: ProviderProtocol::OpenAiCompatible, endpoint: Endpoint::new("https://api.kilo.ai/api/gateway"), credential: Some(super::CredentialRef { name: credential::names::KILO_API_KEY.into() }), headers: Default::default() }
     }
 }
